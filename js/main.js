@@ -25,6 +25,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Khởi tạo logo fallback
     initLogoFallback();
+
+    // Khởi tạo rotator gia sư
+    initTutorRotator();
 });
 
 /**
@@ -285,3 +288,117 @@ function getMobileHeaderOffset() {
 console.log('🎓 TUTORBOND v1.0.0 - Trang giới thiệu dự án');
 console.log('📋 Trang này chỉ trưng bày thông tin, không có chức năng thực tế');
 console.log('📱 Mobile-optimized version');
+
+/**
+ * Rotator hiển thị tối đa 3 thẻ, auto chuyển mỗi 10s, seamless loop
+ */
+function initTutorRotator(){
+    const rotator = document.querySelector('[data-rotator]');
+    const track = rotator?.querySelector('[data-rotator-track]');
+    if(!rotator || !track) return;
+
+    let cards = Array.from(track.children);
+    if(cards.length === 0) return;
+
+    // State
+    let currentIndex = 0; // index của thẻ thực đang active
+    let visible = getVisibleCount(); // số thẻ hiển thị cùng lúc (3/2/1) nhưng bước chuyển = 1
+    let intervalId;
+    const DURATION = 3000; // 3 giây theo yêu cầu mới
+
+    // Clone đầu cuối để seamless
+    function setupClones(){
+        const fragStart = document.createDocumentFragment();
+        const fragEnd = document.createDocumentFragment();
+        // clone cuối lên đầu
+        for(let i=cards.length - visible; i<cards.length; i++){
+            const clone = cards[i].cloneNode(true); clone.setAttribute('data-clone','true'); fragStart.appendChild(clone);
+        }
+        // clone đầu xuống cuối
+        for(let i=0;i<visible;i++){
+            const clone = cards[i].cloneNode(true); clone.setAttribute('data-clone','true'); fragEnd.appendChild(clone);
+        }
+        track.insertBefore(fragStart, track.firstChild);
+        track.appendChild(fragEnd);
+    }
+
+    setupClones();
+
+    // Update collection (include clones for width calc)
+    const allItems = Array.from(track.children);
+
+    function getCardWidth(){
+        const firstReal = cards[0];
+        return firstReal.getBoundingClientRect().width + parseFloat(getComputedStyle(track).gap || 0);
+    }
+
+    function getVisibleCount(){
+        if(window.innerWidth <= 560) return 1;
+        if(window.innerWidth <= 900) return 2;
+        return 3;
+    }
+
+        function applyActiveClasses(){
+            allItems.forEach(el=> el.classList.remove('is-active','is-near'));
+            const leadOffset = visible; // số clone ở đầu
+            const active = allItems[leadOffset + currentIndex];
+            if(active) active.classList.add('is-active');
+            const prev = allItems[leadOffset + currentIndex - 1];
+            if(prev) prev.classList.add('is-near');
+            const next = allItems[leadOffset + currentIndex + 1];
+            if(next) next.classList.add('is-near');
+        }
+
+        function moveTo(index, animate=true){
+            currentIndex = index;
+            const cardW = getCardWidth();
+            if(!animate){ track.style.transition='none'; } else { track.style.transition='transform 700ms ease'; }
+            // translate includes leading clone block
+            const translateX = -(cardW * (currentIndex + visible));
+            track.style.transform = `translateX(${translateX}px)`;
+            applyActiveClasses();
+        }
+
+    function next(){
+        const max = cards.length;
+        currentIndex += 1; // bước chuyển từng 1 thẻ
+        moveTo(currentIndex,true);
+        if(currentIndex >= max){
+            currentIndex = 0;
+            setTimeout(()=> moveTo(currentIndex,false), 720);
+        }
+    }
+
+    function startAuto(){ intervalId = setInterval(next, DURATION); }
+    function stopAuto(){ clearInterval(intervalId); }
+
+    // Pause khi hover để UX
+    rotator.addEventListener('mouseenter', stopAuto);
+    rotator.addEventListener('mouseleave', startAuto);
+
+    // Responsive
+    window.addEventListener('resize', debounce(()=>{
+        const newVisible = getVisibleCount();
+        if(newVisible !== visible){
+            stopAuto();
+            // Reset clones: remove all clones
+            Array.from(track.querySelectorAll('[data-clone="true"]')).forEach(c=>c.remove());
+            visible = newVisible;
+            currentIndex = 0;
+            setupClones();
+            // refresh lists
+            cards = Array.from(track.children).filter(el=>!el.hasAttribute('data-clone'));
+            const newAll = Array.from(track.children);
+            allItems.length = 0; newAll.forEach(n=>allItems.push(n));
+                // Start positioned after leading clones so real items visible
+                moveTo(0,false);
+            startAuto();
+        } else {
+            moveTo(currentIndex,false);
+        }
+    },300));
+
+    // Init position (offset by leading clones count = visible)
+    moveTo(0,false);
+    startAuto();
+}
