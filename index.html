@@ -14,62 +14,56 @@
     <link rel="apple-touch-icon" href="photo/IMG_0027.PNG">
 </head>
 <body>
-    <!-- Header Navigation -->
-    <header class="header">
-        <nav class="nav container">
-            <!-- Logo/Brand name -->
-            <div class="nav-brand">
-                <a href="#" class="brand-link">
-                    <img src="photo/IMG_0027.PNG" alt="TUTORBOND Logo" class="brand-logo">
-                    <span class="brand-text">TUTORBOND</span>
+    <!-- Header: điều hướng chính -->
+    <header class="header site-header" role="banner">
+        <nav class="nav container site-nav" aria-label="Điều hướng chính">
+            <div class="nav-brand site-nav__brand">
+                <a href="#" class="brand-link site-nav__logo" aria-label="Trang chủ TutorBond">
+                    <img src="photo/IMG_0027.PNG" alt="TUTORBOND Logo" class="brand-logo site-nav__logo-img" loading="lazy">
+                    <span class="brand-text site-nav__logo-text">TUTORBOND</span>
                 </a>
             </div>
-            
-            <!-- Mobile menu toggle button -->
-            <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">
+            <!-- Nút menu di động -->
+            <button class="mobile-menu-toggle site-nav__toggle" aria-label="Mở/đóng menu" aria-expanded="false" aria-controls="primary-menu">
                 <span class="hamburger-line"></span>
                 <span class="hamburger-line"></span>
                 <span class="hamburger-line"></span>
             </button>
-            
-            <!-- Navigation menu -->
-            <ul class="nav-menu">
-                <li><a href="#features" class="nav-link">Tính năng</a></li>
-                <li><a href="#how-it-works" class="nav-link">Quy trình</a></li>
-                <li><a href="#cta" class="nav-link">Liên hệ</a></li>
+            <ul id="primary-menu" class="nav-menu site-nav__list" role="menubar">
+                <li role="none"><a href="#tutors" class="nav-link site-nav__link" role="menuitem">Gia sư</a></li>
+                <li role="none"><a href="#features" class="nav-link site-nav__link" role="menuitem">Tính năng</a></li>
+                <li role="none"><a href="#how-it-works" class="nav-link site-nav__link" role="menuitem">Quy trình</a></li>
+                <li role="none"><a href="#nop-cv" class="nav-link site-nav__link" role="menuitem">Nộp CV</a></li>
             </ul>
         </nav>
     </header>
 
     <main>
         <!-- Hero Section -->
-        <section class="hero">
+        <section class="hero hero-section" aria-labelledby="hero-heading">
             <div class="container">
                 <div class="hero-content">
                     <!-- Phần nội dung bên trái -->
-                    <div class="hero-text">
-                        <h1 class="hero-title">
+                    <div class="hero-text hero-section__content">
+                        <h1 id="hero-heading" class="hero-title hero-section__title">
                             Nền tảng sàng lọc CV 
                             <span>gia sư</span>
                         </h1>
-                        <p class="hero-description">
+                        <p class="hero-description hero-section__desc">
                             <strong>TUTORBOND</strong> là công cụ <strong>upload & lọc CV gia sư</strong>.
                             Tải PDF, hệ thống trích xuất thông tin cơ bản (môn dạy, kinh nghiệm, mức giá, hình thức).
                             Sau đó áp dụng bộ lọc khu vực – môn – giá để nhanh chóng tạo danh sách phù hợp.
                         </p>
-                        <div class="hero-buttons">
-                            <!-- CTA updated to link directly to deployed app -->
-                            <a href="https://tutorbond-cv.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg btn-start">Bắt đầu ngay</a>
-                        </div>
+                        <!-- (Đã di chuyển nút 'Vào ứng dụng' xuống section Lọc CV) -->
                     </div>
                     
                     <!-- Phần minh họa bên phải -->
-                    <div class="hero-illustration">
-                        <div class="illustration-card">
-                            <div class="books-stack">
-                                <div class="book book-green"></div>
-                                <div class="book book-pink"></div>
-                                <div class="book book-blue"></div>
+                    <div class="hero-illustration hero-section__art" aria-hidden="true">
+                        <div class="illustration-card hero-section__illustration">
+                            <div class="books-stack hero-section__books">
+                                <div class="book book-green hero-section__book"></div>
+                                <div class="book book-pink hero-section__book"></div>
+                                <div class="book book-blue hero-section__book"></div>
                             </div>
                         </div>
                     </div>
@@ -78,11 +72,11 @@
         </section>
 
                                 <!-- Danh sách gia sư tiêu biểu (rotator) -->
-                                <section class="tutors" aria-labelledby="tutors-heading">
+                                <section id="tutors" class="tutors tutor-section" aria-labelledby="tutors-heading" role="region" aria-roledescription="carousel" aria-label="Danh sách gia sư" data-carousel>
                                     <div class="container">
-                                        <h2 id="tutors-heading" class="section-title">Gia sư tiêu biểu</h2>
+                                        <h2 id="tutors-heading" class="section-title tutor-section__title">Gia sư tiêu biểu</h2>
                                         <!-- Bộ lọc môn học -->
-                                        <form class="tutor-filter" data-tutor-filter aria-label="Lọc môn học">
+                                        <form class="tutor-filter tutor-section__filter" data-tutor-filter aria-label="Lọc gia sư" role="search">
                                             <div class="tutor-filter__group">
                                                 <span class="tutor-filter__icon" aria-hidden="true">🔍</span>
                                                 <label for="subjectSelect" class="tutor-filter__label">Môn:</label>
@@ -103,126 +97,167 @@
                                                     <option value=">300">> 300k</option>
                                                 </select>
                                             </div>
-                                            <div class="tutor-filter__result" data-filter-result>5 gia sư</div>
+                                            <div class="tutor-filter__result" data-filter-result aria-live="polite">5 gia sư</div>
                                         </form>
-                                        <div class="tutor-rotator" data-rotator>
-                                          <div class="tutor-rotator__track" data-rotator-track>
+                                        <div class="tutor-rotator tutor-section__rotator" data-rotator>
+                                          <div class="tutor-rotator__track" data-rotator-track aria-atomic="false" aria-live="off">
                                             <!-- Card 1: Bùi Thị Phương Thảo -->
-                                            <article class="tb-card" aria-label="Gia sư Bùi Thị Phương Thảo" data-subject="Hóa học" data-salary="200">
+                                            <article class="tb-card tutor-card" aria-label="Gia sư Bùi Thị Phương Thảo" data-subject="Hóa học" data-salary="200" tabindex="0">
                                                 <h3 class="tb-head">Hóa học</h3>
                                                 <div class="tb-row">
-                                                    <div class="tb-avatar" aria-hidden="true">
-                                                        <img src="photo/profile/bùi thị phương thảo.jpg" alt="Ảnh Bùi Thị Phương Thảo" loading="lazy" />
-                                                        <span class="tb-initials" aria-hidden="true"></span>
+                                                    <div class="tb-avatar tutor-card__avatar" aria-hidden="true">
+                                                        <img src="photo/profile/bùi thị phương thảo.jpg" alt="Ảnh Bùi Thị Phương Thảo" loading="lazy" class="tutor-card__img" />
+                                                        <span class="tb-initials tutor-card__initials" aria-hidden="true"></span>
                                                     </div>
-                                                    <div class="tb-info">
-                                                        <p class="tb-name">Bùi Thị Phương Thảo</p>
-                                                        <p class="tb-summary">1 năm trợ giảng, 2 năm đứng lớp tại trung tâm gia sư</p>
+                                                    <div class="tb-info tutor-card__info">
+                                                        <p class="tb-name tutor-card__name">Bùi Thị Phương Thảo</p>
+                                                        <p class="tb-summary tutor-card__summary">1 năm trợ giảng, 2 năm đứng lớp tại trung tâm gia sư</p>
                                                     </div>
                                                 </div>
-                                                <div class="tb-meta" aria-label="Thông tin nhanh">
+                                                <div class="tb-meta tutor-card__meta" aria-label="Thông tin nhanh">
                                                     <div class="tb-meta-item"><span>🎓</span> GPA Hóa 9,6</div>
                                                     <div class="tb-meta-item"><span>👥</span> THPTQG Hóa 9,0</div>
                                                     <div class="tb-meta-item"><span>📍</span> Hà Nội</div>
                                                     <div class="tb-meta-item"><span>📅</span> Giải Nhì HSG Hóa cấp Thành phố</div>
                                                 </div>
-                                                <p class="tb-price">200 000 VND/giờ</p>
+                                                <p class="tb-price tutor-card__price">200 000 VND/giờ</p>
                                             </article>
                                             <!-- Card 2: Phạm Thuý Lâm Hà -->
-                                            <article class="tb-card" aria-label="Gia sư Phạm Thuý Lâm Hà" data-subject="Vật lí" data-salary="200">
+                                            <article class="tb-card tutor-card" aria-label="Gia sư Phạm Thuý Lâm Hà" data-subject="Vật lí" data-salary="200" tabindex="0">
                                                 <h3 class="tb-head">Vật lí</h3>
                                                 <div class="tb-row">
-                                                    <div class="tb-avatar" aria-hidden="true">
-                                                        <img src="photo/profile/PHẠM THUÝ LÂM HÀ.jpg" alt="Ảnh Phạm Thuý Lâm Hà" loading="lazy" />
-                                                        <span class="tb-initials" aria-hidden="true"></span>
+                                                    <div class="tb-avatar tutor-card__avatar" aria-hidden="true">
+                                                        <img src="photo/profile/PHẠM THUÝ LÂM HÀ.jpg" alt="Ảnh Phạm Thuý Lâm Hà" loading="lazy" class="tutor-card__img" />
+                                                        <span class="tb-initials tutor-card__initials" aria-hidden="true"></span>
                                                     </div>
-                                                    <div class="tb-info">
-                                                        <p class="tb-name">Phạm Thuý Lâm Hà</p>
-                                                        <p class="tb-summary">Từng trợ giảng Vật lí; giao tiếp tốt; từng tham gia MUN</p>
+                                                    <div class="tb-info tutor-card__info">
+                                                        <p class="tb-name tutor-card__name">Phạm Thuý Lâm Hà</p>
+                                                        <p class="tb-summary tutor-card__summary">Từng trợ giảng Vật lí; giao tiếp tốt; từng tham gia MUN</p>
                                                     </div>
                                                 </div>
-                                                <div class="tb-meta" aria-label="Thông tin nhanh">
+                                                <div class="tb-meta tutor-card__meta" aria-label="Thông tin nhanh">
                                                     <div class="tb-meta-item"><span>🎓</span> Giải Ba KHTN Vật lý 2023–2024</div>
                                                     <div class="tb-meta-item"><span>👥</span> Giải Ba HSG Vật lý cấp Thành phố 2024–2025</div>
                                                     <div class="tb-meta-item"><span>📍</span> Hà Nội</div>
                                                     <div class="tb-meta-item"><span>📅</span> Giải Nhì HSG Tiếng Anh cấp trường 2022–2023</div>
                                                 </div>
-                                                <p class="tb-price">200 000 VND/giờ</p>
+                                                <p class="tb-price tutor-card__price">200 000 VND/giờ</p>
                                             </article>
                                             <!-- Card 3: Lê Tiến Đạt -->
-                                            <article class="tb-card" aria-label="Gia sư Lê Tiến Đạt" data-subject="Vật lí" data-salary="200">
+                                            <article class="tb-card tutor-card" aria-label="Gia sư Lê Tiến Đạt" data-subject="Vật lí" data-salary="200" tabindex="0">
                                                 <h3 class="tb-head">Vật lý</h3>
                                                 <div class="tb-row">
-                                                    <div class="tb-avatar" aria-hidden="true">
-                                                        <img src="photo/profile/lê tiến đạt.jpg" alt="Ảnh Lê Tiến Đạt" loading="lazy" />
-                                                        <span class="tb-initials" aria-hidden="true"></span>
+                                                    <div class="tb-avatar tutor-card__avatar" aria-hidden="true">
+                                                        <img src="photo/profile/lê tiến đạt.jpg" alt="Ảnh Lê Tiến Đạt" loading="lazy" class="tutor-card__img" />
+                                                        <span class="tb-initials tutor-card__initials" aria-hidden="true"></span>
                                                     </div>
-                                                    <div class="tb-info">
-                                                        <p class="tb-name">Lê Tiến Đạt</p>
-                                                        <p class="tb-summary">1 năm đứng lớp tại trung tâm gia sư; nhanh nhẹn, hoạt bát</p>
+                                                    <div class="tb-info tutor-card__info">
+                                                        <p class="tb-name tutor-card__name">Lê Tiến Đạt</p>
+                                                        <p class="tb-summary tutor-card__summary">1 năm đứng lớp tại trung tâm gia sư; nhanh nhẹn, hoạt bát</p>
                                                     </div>
                                                 </div>
-                                                <div class="tb-meta" aria-label="Thông tin nhanh">
+                                                <div class="tb-meta tutor-card__meta" aria-label="Thông tin nhanh">
                                                     <div class="tb-meta-item"><span>🎓</span> Giải Nhì “Toán & KHTN bằng tiếng Anh” 2023–2024</div>
                                                     <div class="tb-meta-item"><span>👥</span> Từng thuộc đội tuyển HSG Vật lí cấp 2–3</div>
                                                     <div class="tb-meta-item"><span>📍</span> Hà Nội</div>
                                                 </div>
-                                                <p class="tb-price">200 000 VND/giờ</p>
+                                                <p class="tb-price tutor-card__price">200 000 VND/giờ</p>
                                             </article>
                                             <!-- Card 4: Nguyễn Mạnh Hiển -->
-                                            <article class="tb-card" aria-label="Gia sư Nguyễn Mạnh Hiển" data-subject="Tiếng Anh" data-salary="300">
+                                            <article class="tb-card tutor-card" aria-label="Gia sư Nguyễn Mạnh Hiển" data-subject="Tiếng Anh" data-salary="300" tabindex="0">
                                                 <h3 class="tb-head">Tiếng Anh</h3>
                                                 <div class="tb-row">
-                                                    <div class="tb-avatar" aria-hidden="true">
-                                                        <img src="photo/profile/nguyễn mạnh hiển.jpg" alt="Ảnh Nguyễn Mạnh Hiển" loading="lazy" />
-                                                        <span class="tb-initials" aria-hidden="true"></span>
+                                                    <div class="tb-avatar tutor-card__avatar" aria-hidden="true">
+                                                        <img src="photo/profile/nguyễn mạnh hiển.jpg" alt="Ảnh Nguyễn Mạnh Hiển" loading="lazy" class="tutor-card__img" />
+                                                        <span class="tb-initials tutor-card__initials" aria-hidden="true"></span>
                                                     </div>
-                                                    <div class="tb-info">
-                                                        <p class="tb-name">Nguyễn Mạnh Hiển</p>
-                                                        <p class="tb-summary">Gia sư THCS; tin học văn phòng thành thạo; giao tiếp tốt</p>
+                                                    <div class="tb-info tutor-card__info">
+                                                        <p class="tb-name tutor-card__name">Nguyễn Mạnh Hiển</p>
+                                                        <p class="tb-summary tutor-card__summary">Gia sư THCS; tin học văn phòng thành thạo; giao tiếp tốt</p>
                                                     </div>
                                                 </div>
-                                                <div class="tb-meta" aria-label="Thông tin nhanh">
+                                                <div class="tb-meta tutor-card__meta" aria-label="Thông tin nhanh">
                                                     <div class="tb-meta-item"><span>🎓</span> HSA 106 (Tiếng Anh 42)</div>
                                                     <div class="tb-meta-item"><span>👥</span> IELTS 7.0</div>
                                                     <div class="tb-meta-item"><span>📍</span> Hà Nội</div>
                                                     <div class="tb-meta-item"><span>📅</span> Giải Ba HSG cấp trường Tiếng Anh</div>
                                                 </div>
-                                                <p class="tb-price">300 000 VND/giờ</p>
+                                                <p class="tb-price tutor-card__price">300 000 VND/giờ</p>
                                             </article>
                                             <!-- Card 5: Nguyễn Xuân Hưng -->
-                                            <article class="tb-card" aria-label="Gia sư Nguyễn Xuân Hưng" data-subject="Toán học" data-salary="400">
+                                            <article class="tb-card tutor-card" aria-label="Gia sư Nguyễn Xuân Hưng" data-subject="Toán học" data-salary="400" tabindex="0">
                                                 <h3 class="tb-head">Toán học</h3>
                                                 <div class="tb-row">
-                                                    <div class="tb-avatar" aria-hidden="true">
-                                                        <img src="photo/profile/Nguyễn Xuân Hưng.jpg" alt="Ảnh Nguyễn Xuân Hưng" loading="lazy" />
-                                                        <span class="tb-initials" aria-hidden="true"></span>
+                                                    <div class="tb-avatar tutor-card__avatar" aria-hidden="true">
+                                                        <img src="photo/profile/Nguyễn Xuân Hưng.jpg" alt="Ảnh Nguyễn Xuân Hưng" loading="lazy" class="tutor-card__img" />
+                                                        <span class="tb-initials tutor-card__initials" aria-hidden="true"></span>
                                                     </div>
-                                                    <div class="tb-info">
-                                                        <p class="tb-name">Nguyễn Xuân Hưng</p>
-                                                        <p class="tb-summary">Gia sư 1–1 THCS & THPT; kỹ năng Word/Excel/PowerPoint</p>
+                                                    <div class="tb-info tutor-card__info">
+                                                        <p class="tb-name tutor-card__name">Nguyễn Xuân Hưng</p>
+                                                        <p class="tb-summary tutor-card__summary">Gia sư 1–1 THCS & THPT; kỹ năng Word/Excel/PowerPoint</p>
                                                     </div>
                                                 </div>
-                                                <div class="tb-meta" aria-label="Thông tin nhanh">
+                                                <div class="tb-meta tutor-card__meta" aria-label="Thông tin nhanh">
                                                     <div class="tb-meta-item"><span>🎓</span> Giải Nhì Toán cấp tỉnh Bắc Giang</div>
                                                     <div class="tb-meta-item"><span>👥</span> HSA 117</div>
                                                     <div class="tb-meta-item"><span>📍</span> Hà Nội</div>
                                                     <div class="tb-meta-item"><span>📅</span> A00 27,75</div>
                                                 </div>
-                                                <p class="tb-price">400 000 VND/giờ</p>
+                                                <p class="tb-price tutor-card__price">400 000 VND/giờ</p>
                                                                                         </article>
-                                                                                    </div>
-                                                                                </div>
+                                            </div>
+                                            <!-- Nút điều hướng carousel -->
+                                            <div class="tutor-rotator__controls" aria-hidden="false">
+                                                <button type="button" class="tutor-rotator__btn tutor-rotator__btn--prev" data-rotator-prev aria-label="Gia sư trước" tabindex="0">←</button>
+                                                <button type="button" class="tutor-rotator__btn tutor-rotator__btn--next" data-rotator-next aria-label="Gia sư tiếp theo" tabindex="0">→</button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </section>
 
-                <!-- Features Section - Các chức năng chính -->
-        <section id="features" class="features">
+        <!-- Fanpage phụ huynh: CTA dành cho Phụ huynh cần tư vấn tìm gia sư -->
+        <div class="container" style="margin-top:-1.5rem; margin-bottom:3rem;">
+            <div class="card feature-card" style="max-width:860px; margin:0 auto; text-align:center; padding:2.5rem 2rem;">
+                <h3 style="font-size:1.4rem; margin-bottom:1rem; font-weight:700;">Phụ huynh cần tư vấn tìm gia sư?</h3>
+                <p style="color:#52525B; line-height:1.55; margin:0 0 1.25rem; font-size:0.95rem;">Phụ Huynh Học Sinh có nhu cầu tìm kiếm gia sư phù hợp theo yêu cầu – để lại nhu cầu tại fanpage, chúng tôi sẽ phản hồi nhanh.</p>
+                <a href="https://www.facebook.com/share/1D8Gag6hwd/" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-lg" aria-label="Mở fanpage Facebook để được tư vấn tìm gia sư">Tư vấn qua Fanpage</a>
+            </div>
+        </div>
+
+        <!-- Student CV Submit Section: Form nộp CV -->
+        <section id="nop-cv" class="how-it-works how-section" aria-labelledby="nop-cv-heading">
             <div class="container">
-                <h2 class="section-title">Lọc CV gia sư</h2>
+                <h2 id="nop-cv-heading" class="section-title how-section__title">Sinh viên / Gia sư: Nộp CV</h2>
+                <div class="steps-grid">
+                    <div class="step-card how-section__step" aria-label="Hướng dẫn nộp">
+                        <div class="step-number">1</div>
+                        <h3 class="step-title">Chuẩn bị CV PDF</h3>
+                        <p class="step-description">Đảm bảo CV thể hiện rõ môn dạy, kinh nghiệm, mức giá mong muốn và khu vực.</p>
+                    </div>
+                    <div class="step-card how-section__step" aria-label="Điền form">
+                        <div class="step-number">2</div>
+                        <h3 class="step-title">Điền biểu mẫu</h3>
+                        <p class="step-description">Nhấn nút bên dưới để mở form và tải CV của bạn lên hệ thống.</p>
+                    </div>
+                    <div class="step-card how-section__step" aria-label="Chờ phản hồi">
+                        <div class="step-number">3</div>
+                        <h3 class="step-title">Theo dõi email</h3>
+                        <p class="step-description">Chúng tôi sẽ liên hệ khi có lớp phù hợp hoặc cần thêm thông tin.</p>
+                    </div>
+                </div>
+                <div class="cta-buttons" style="margin-top:2rem; justify-content:center;">
+                    <a class="btn btn-primary btn-lg" target="_blank" rel="noopener noreferrer" href="https://docs.google.com/forms/d/e/1FAIpQLSfKdloubGUpEuQ-kbebNpskdUsgdNaMrEYseuMm6a6Cmo9E_w/viewform?usp=header" aria-label="Mở form Google để nộp CV">Mở form nộp CV</a>
+                </div>
+            </div>
+        </section>
+
+                <!-- Features Section - Các chức năng chính -->
+        <section id="features" class="features feature-section" aria-labelledby="features-heading">
+            <div class="container">
+                <h2 id="features-heading" class="section-title feature-section__title">Lọc CV gia sư</h2>
                 <div class="features-grid">
                     <!-- Feature 1: Upload CV -->
-                    <div class="card feature-card">
+                    <div class="card feature-card feature-section__card">
                         <div class="feature-icon">📄</div>
                         <h3 class="feature-title">Upload CV</h3>
                         <p class="feature-description">
@@ -231,7 +266,7 @@
                     </div>
 
                     <!-- Feature 2: Lọc đa tiêu chí -->
-                    <div class="card feature-card">
+                    <div class="card feature-card feature-section__card">
                         <div class="feature-icon">🔎</div>
                         <h3 class="feature-title">Lọc đa tiêu chí</h3>
                         <p class="feature-description">
@@ -239,25 +274,27 @@
                         </p>
                     </div>
                 </div>
+                <div class="cta-buttons" style="margin-top:3rem; justify-content:center;">
+                    <a href="https://tutorbond-cv.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg" aria-label="Mở ứng dụng sàng lọc CV gia sư">Vào ứng dụng</a>
+                </div>
             </div>
         </section>
 
         <!-- How It Works Section - Quy trình hoạt động -->
-        <section id="how-it-works" class="how-it-works">
+        <section id="how-it-works" class="how-it-works how-section" aria-labelledby="how-heading">
             <div class="container">
-                <h2 class="section-title">Quy trình cơ bản</h2>
+                <h2 id="how-heading" class="section-title how-section__title">Quy trình cơ bản</h2>
                 <div class="steps-grid steps-grid--with-connectors">
                     <!-- Bước 1 -->
-                    <div class="step-card" data-step="1">
+                    <div class="step-card how-section__step" data-step="1">
                         <div class="step-number">1</div>
                         <h3 class="step-title">Upload CV</h3>
                         <p class="step-description">
                             Nạp file PDF CV gia sư.
                         </p>
                     </div>
-
                     <!-- Bước 2 -->
-                    <div class="step-card" data-step="2">
+                    <div class="step-card how-section__step" data-step="2">
                         <div class="step-number">2</div>
                         <h3 class="step-title">Trích xuất thông tin</h3>
                         <p class="step-description">
@@ -266,7 +303,7 @@
                     </div>
 
                     <!-- Bước 3 -->
-                    <div class="step-card" data-step="3">
+                    <div class="step-card how-section__step" data-step="3">
                         <div class="step-number">3</div>
                         <h3 class="step-title">Lọc danh sách</h3>
                         <p class="step-description">
@@ -278,32 +315,14 @@
         </section>
 
         <!-- Call to Action Section -->
-        <section id="cta" class="cta">
-            <div class="container">
-                <div class="cta-content">
-                    <h2 class="cta-title">Cần triển khai cho tổ chức?</h2>
-                    <p class="cta-description">
-                        Liên hệ để tích hợp mô-đun sàng lọc CV gia sư vào hệ thống nội bộ / website của bạn.
-                    </p>
-                    <div class="cta-buttons">
-                        <a href="mailto:contact@example.com" class="btn btn-primary btn-lg">
-                            Liên hệ để triển khai
-                        </a>
-                        <a href="#" class="btn btn-outline btn-lg">
-                            Tải brochure
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </section>
     </main>
 
     <!-- Footer -->
-    <footer class="footer">
+    <footer class="footer site-footer" role="contentinfo">
         <div class="container">
             <div class="footer-content">
                 <!-- Brand Column -->
-                <div class="footer-brand">
+                <div class="footer-brand site-footer__brand">
                     <h3 class="footer-brand-text">TUTORBOND</h3>
                     <p class="footer-description">
                         Công cụ sàng lọc & phân tích CV gia sư bằng AI
@@ -315,7 +334,7 @@
                         </div>
                         <div class="contact-item">
                             <span class="contact-icon">✉️</span>
-                            <a href="mailto:buikhoinguyen1477@gmail.com" class="contact-link">tutorbond217@gmail.com</a>
+                            <a href="mailto:tutorbond217@gmail.com" class="contact-link">tutorbond217@gmail.com</a>
                         </div>
                     </div>
                 </div>
@@ -324,12 +343,12 @@
 
                 <!-- Column: Quản trị / Vận hành -->
                 <div class="footer-column">
-                    <h4 class="footer-title">Quản trị</h4>
+                    <h4 class="footer-title">Chức năng</h4>
                     <ul class="footer-nav">
-                        <li><a href="#features" class="footer-nav-link">Upload & phân tích CV</a></li>
+                        <li><a href="#tutors" class="footer-nav-link">Gia sư tiêu biểu</a></li>
+                        <li><a href="#features" class="footer-nav-link">Upload & lọc CV</a></li>
                         <li><a href="#how-it-works" class="footer-nav-link">Quy trình sàng lọc</a></li>
-                        <li><a href="#cta" class="footer-nav-link">Tích hợp hệ thống</a></li>
-                        <li><a href="#" class="footer-nav-link">Xuất dữ liệu</a></li>
+                        <li><a href="#nop-cv" class="footer-nav-link">Nộp CV</a></li>
                     </ul>
                 </div>
 
@@ -337,10 +356,10 @@
                 <div class="footer-column">
                     <h4 class="footer-title">Hỗ trợ</h4>
                     <ul class="footer-nav">
-                        <li><a href="#" class="footer-nav-link">Trung tâm trợ giúp</a></li>
-                        <li><a href="#cta" class="footer-nav-link">Liên hệ</a></li>
-                        <li><a href="#" class="footer-nav-link">Điều khoản sử dụng</a></li>
-                        <li><a href="#" class="footer-nav-link">Chính sách bảo mật</a></li>
+                        <li><a href="https://www.facebook.com/share/1D8Gag6hwd/" target="_blank" rel="noopener noreferrer" class="footer-nav-link">Fanpage</a></li>
+                        <li><a href="mailto:tutorbond217@gmail.com" class="footer-nav-link">Liên hệ email</a></li>
+                        <li><a href="#" class="footer-nav-link" aria-disabled="true">Điều khoản (đang cập nhật)</a></li>
+                        <li><a href="#" class="footer-nav-link" aria-disabled="true">Bảo mật (đang cập nhật)</a></li>
                     </ul>
                 </div>
             </div>
@@ -353,8 +372,8 @@
             </div>
         </div>
     </footer>
-
+ 
     <!-- JavaScript cho smooth scroll -->
     <script src="js/main.js"></script>
 </body>
-</html>
+</html> 
