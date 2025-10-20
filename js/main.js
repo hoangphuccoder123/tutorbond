@@ -447,21 +447,29 @@ function initTutorSubjectFilter(){
     const track = document.querySelector('[data-rotator-track]');
     const resultEl = document.querySelector('[data-filter-result]');
     const salarySelect = document.querySelector('[data-filter-salary]');
+    const examSelect = document.querySelector('[data-filter-exam]');
     if(!select || !track) return;
 
     function handleFilter(){
         const value = select.value;
+        const examValue = examSelect ? examSelect.value : 'all';
         const salaryValue = salarySelect ? salarySelect.value : 'all';
         const allCards = Array.from(track.querySelectorAll('.tb-card')).filter(c=>!c.hasAttribute('data-clone'));
         let visibleCount = 0;
         allCards.forEach(card => {
             const subject = card.getAttribute('data-subject');
             const salary = parseInt(card.getAttribute('data-salary')||'0',10);
+            const examsAttr = card.getAttribute('data-exams') || '';
+            const exams = examsAttr.split(',').map(s=>s.trim()).filter(Boolean);
             let salaryMatch = true;
             if(salaryValue === '<=200'){ salaryMatch = salary <= 200; }
             else if(salaryValue === '200-300'){ salaryMatch = salary >= 200 && salary <= 300; }
             else if(salaryValue === '>300'){ salaryMatch = salary > 300; }
-            const show = (value === 'all' || subject === value) && salaryMatch;
+            let examMatch = true;
+            if(examValue !== 'all'){
+                examMatch = exams.includes(examValue);
+            }
+            const show = (value === 'all' || subject === value) && salaryMatch && examMatch;
             card.style.display = show ? '' : 'none';
             if(show) visibleCount++;
         });
@@ -472,6 +480,7 @@ function initTutorSubjectFilter(){
     }
 
     select.addEventListener('change', handleFilter);
+    if(examSelect){ examSelect.addEventListener('change', handleFilter); }
     if(salarySelect){ salarySelect.addEventListener('change', handleFilter); }
 
     function rebuildRotator(){
@@ -517,4 +526,6 @@ function initTutorSubjectFilter(){
             if(realCards[1]) realCards[1].classList.add('is-near');
         }
     }
+    // Khởi tạo ban đầu để đảm bảo count đúng khi load trang
+    handleFilter();
 }
