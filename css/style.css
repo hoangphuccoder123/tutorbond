@@ -1750,3 +1750,57 @@ section {
 .tutor-filter__group--salary { position:relative; }
 .tutor-filter__group--salary::before { content:''; position:absolute; left:-16px; top:50%; transform:translateY(-50%); width:1px; height:26px; background: var(--gray-200); }
 @media (max-width: 640px){ .tutor-filter { padding: var(--spacing-3) var(--spacing-4); gap: var(--spacing-3);} .tutor-filter__result { font-size: var(--font-size-2xs); } }
+/* ================= BEM mở rộng cho khu vực gia sư ================= */
+/* Ghi chú: Các lớp BEM bổ sung song song lớp cũ (.tb-*) để không phá vỡ JS hiện tại */
+/* Khối chính hiển thị danh sách gia sư */
+.tutor-section__list { position:relative; }
+
+/* Alias cho card dùng BEM (card vẫn giữ .tb-card) */
+.tutor-card { /* giữ nguyên kiểu thẻ để có thể dùng song song */
+        background: var(--white);
+        border:1px solid var(--gray-200);
+        border-radius: var(--radius-2xl);
+        padding: var(--spacing-6);
+        display:flex;
+        flex-direction:column;
+        gap: var(--spacing-4);
+        position:relative;
+        box-shadow: var(--shadow-sm);
+        transition: box-shadow var(--transition-base), transform var(--transition-base), border-color var(--transition-base);
+}
+.tutor-card:hover { transform:translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--primary-300); }
+.tutor-card::before { content:''; position:absolute; inset:0; border-radius:inherit; background:linear-gradient(135deg, rgba(255,106,0,0.08), rgba(255,106,0,0.02)); opacity:0; transition:opacity var(--transition-fast); }
+.tutor-card:hover::before { opacity:1; }
+
+/* Phần header / avatar / thông tin */
+.tutor-card__row { display:flex; gap: var(--spacing-4); }
+.tutor-card__avatar { width:56px; height:56px; border-radius: var(--radius-full); background: var(--gray-100); position:relative; overflow:hidden; box-shadow: var(--shadow-xs); }
+.tutor-card__avatar img { width:100%; height:100%; object-fit:cover; display:block; filter:saturate(105%); transition: transform var(--transition-slow); }
+.tutor-card:hover .tutor-card__avatar img { transform:scale(1.05); }
+.tutor-card__initials { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--gray-700); mix-blend-mode:luminosity; }
+.tutor-card__info { flex:1; min-width:0; display:flex; flex-direction:column; }
+.tutor-card__name { font-size: var(--font-size-base); font-weight: var(--font-weight-semibold); margin:0 0 2px; color: var(--gray-800); }
+.tutor-card__summary { margin:0; font-size: var(--font-size-sm); line-height: var(--leading-snug); color: var(--gray-600); display:-webkit-box; -webkit-line-clamp:2; line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; text-overflow:ellipsis; }
+.tutor-card__meta { display:flex; flex-wrap:wrap; gap:4px 12px; font-size: var(--font-size-xs); color: var(--gray-500); }
+.tutor-card__meta-item { display:flex; align-items:center; gap:4px; white-space:nowrap; }
+.tutor-card__price { font-size: var(--font-size-sm); font-weight: var(--font-weight-bold); color: var(--primary-600); margin:0; }
+
+/* Trạng thái accessibility khi focus qua bàn phím */
+.tutor-card:focus-visible { outline:2px solid var(--primary-500); outline-offset:4px; }
+
+/* Điều khiển rotator (prev/next) */
+.tutor-rotator__controls { display:flex; align-items:center; justify-content:center; gap: var(--spacing-3); margin: var(--spacing-6) 0 var(--spacing-2); }
+.tutor-rotator__btn { width:42px; height:42px; display:flex; align-items:center; justify-content:center; background: var(--white); border:1px solid var(--gray-300); border-radius: var(--radius-full); cursor:pointer; color: var(--primary-600); font-size: var(--font-size-base); box-shadow: var(--shadow-sm); transition: all var(--transition-base); position:relative; }
+.tutor-rotator__btn:hover { background: var(--primary-50); border-color: var(--primary-400); box-shadow: var(--shadow-md); transform:translateY(-2px); }
+.tutor-rotator__btn:active { transform:translateY(0); box-shadow: var(--shadow-xs); }
+.tutor-rotator__btn:focus-visible { outline:2px solid var(--primary-500); outline-offset:3px; }
+.tutor-rotator__btn[disabled] { opacity:.4; cursor:not-allowed; transform:none; }
+
+/* Hiển thị trạng thái đang tạm dừng auto-play */
+.tutor-rotator--paused .tb-card.is-active { box-shadow: 0 0 0 3px var(--primary-200), var(--shadow-lg); }
+
+/* Thu gọn trên mobile */
+@media (max-width: 640px){
+    .tutor-card { padding: var(--spacing-5); }
+    .tutor-rotator__btn { width:38px; height:38px; }
+} 
