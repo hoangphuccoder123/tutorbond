@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Khởi tạo rotator gia sư
     initTutorRotator();
+    initTutorSubjectFilter();
 });
 
 /**
@@ -369,12 +370,17 @@ function initTutorRotator(){
         }
     }
 
-    function startAuto(){ intervalId = setInterval(next, DURATION); }
+    function startAuto(){
+        // Chỉ chạy auto nếu số thẻ thực > 3
+        const realCount = cards.length;
+        if(realCount <= 3) return; // không autoplay khi ít
+        intervalId = setInterval(next, DURATION);
+    }
     function stopAuto(){ clearInterval(intervalId); }
 
     // Pause khi hover để UX
     rotator.addEventListener('mouseenter', stopAuto);
-    rotator.addEventListener('mouseleave', startAuto);
+    rotator.addEventListener('mouseleave', ()=>{ stopAuto(); startAuto(); });
 
     // Responsive
     window.addEventListener('resize', debounce(()=>{
@@ -401,4 +407,84 @@ function initTutorRotator(){
     // Init position (offset by leading clones count = visible)
     moveTo(0,false);
     startAuto();
+}
+
+/**
+ * Bộ lọc môn học đơn giản: ẩn các thẻ không khớp và reset rotator
+ */
+function initTutorSubjectFilter(){
+    const select = document.querySelector('[data-filter-subject]');
+    const track = document.querySelector('[data-rotator-track]');
+    const resultEl = document.querySelector('[data-filter-result]');
+    const salarySelect = document.querySelector('[data-filter-salary]');
+    if(!select || !track) return;
+
+    function handleFilter(){
+        const value = select.value;
+        const salaryValue = salarySelect ? salarySelect.value : 'all';
+        const allCards = Array.from(track.querySelectorAll('.tb-card')).filter(c=>!c.hasAttribute('data-clone'));
+        let visibleCount = 0;
+        allCards.forEach(card => {
+            const subject = card.getAttribute('data-subject');
+            const salary = parseInt(card.getAttribute('data-salary')||'0',10);
+            let salaryMatch = true;
+            if(salaryValue === '<=200'){ salaryMatch = salary <= 200; }
+            else if(salaryValue === '200-300'){ salaryMatch = salary >= 200 && salary <= 300; }
+            else if(salaryValue === '>300'){ salaryMatch = salary > 300; }
+            const show = (value === 'all' || subject === value) && salaryMatch;
+            card.style.display = show ? '' : 'none';
+            if(show) visibleCount++;
+        });
+        if(resultEl){
+            resultEl.textContent = `${visibleCount} gia sư`;
+        }
+        rebuildRotator();
+    }
+
+    select.addEventListener('change', handleFilter);
+    if(salarySelect){ salarySelect.addEventListener('change', handleFilter); }
+
+    function rebuildRotator(){
+        // Xóa clone để tránh lặp CV
+        Array.from(track.querySelectorAll('[data-clone="true"]')).forEach(c=>c.remove());
+        const realCards = Array.from(track.querySelectorAll('.tb-card')).filter(c=>c.style.display !== 'none');
+        // Nếu chỉ còn 1 hoặc 0 hoặc tổng <=3 thì không tạo clone / không animation
+        if(realCards.length <= 1 || realCards.length <= 3){
+            track.style.transition='none';
+            track.style.transform = 'translateX(0)';
+            Array.from(track.children).forEach(el=> el.classList.remove('is-active','is-near'));
+            if(realCards[0]) realCards[0].classList.add('is-active');
+            return;
+        }
+        const visible = (window.innerWidth <= 560)?1:(window.innerWidth <= 900?2:3);
+        const needClone = realCards.length > visible; // chỉ clone nếu hơn số hiển thị
+        if(needClone){
+            const fragStart = document.createDocumentFragment();
+            const fragEnd = document.createDocumentFragment();
+            const cloneCount = Math.min(visible, realCards.length);
+            for(let i=realCards.length - cloneCount; i<realCards.length; i++){
+                const clone = realCards[i].cloneNode(true); clone.setAttribute('data-clone','true'); fragStart.appendChild(clone);
+            }
+            for(let i=0;i<cloneCount; i++){
+                const clone = realCards[i].cloneNode(true); clone.setAttribute('data-clone','true'); fragEnd.appendChild(clone);
+            }
+            track.insertBefore(fragStart, track.firstChild);
+            track.appendChild(fragEnd);
+            const gap = parseFloat(getComputedStyle(track).gap||0);
+            const cardW = realCards[0].getBoundingClientRect().width + gap;
+            track.style.transition='none';
+            track.style.transform = `translateX(-${cardW * cloneCount}px)`;
+            Array.from(track.children).forEach(el=> el.classList.remove('is-active','is-near'));
+            const all = Array.from(track.children);
+            const active = all[cloneCount];
+            if(active) active.classList.add('is-active');
+            const next = all[cloneCount+1]; if(next) next.classList.add('is-near');
+        } else {
+            track.style.transition='none';
+            track.style.transform = 'translateX(0)';
+            Array.from(track.children).forEach(el=> el.classList.remove('is-active','is-near'));
+            realCards[0].classList.add('is-active');
+            if(realCards[1]) realCards[1].classList.add('is-near');
+        }
+    }
 }
