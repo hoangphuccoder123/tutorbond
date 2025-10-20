@@ -285,10 +285,7 @@ function getMobileHeaderOffset() {
     return window.innerWidth <= 768 ? header.offsetHeight + 10 : header.offsetHeight + 20;
 }
 
-// Log thông tin dự án (chỉ trong development)
-console.log('🎓 TUTORBOND v1.0.0 - Trang giới thiệu dự án');
-console.log('📋 Trang này chỉ trưng bày thông tin, không có chức năng thực tế');
-console.log('📱 Mobile-optimized version');
+// (Đã lược bỏ console.log dev để code sạch hơn production)
 
 /**
  * Rotator hiển thị tối đa 3 thẻ, auto chuyển mỗi 10s, seamless loop
@@ -298,17 +295,32 @@ function initTutorRotator(){
     const track = rotator?.querySelector('[data-rotator-track]');
     if(!rotator || !track) return;
 
+    const prevBtn = rotator.querySelector('[data-rotator-prev]');
+    const nextBtn = rotator.querySelector('[data-rotator-next]');
+
     let cards = Array.from(track.children);
     if(cards.length === 0) return;
 
-    // State
-    let currentIndex = 0; // index của thẻ thực đang active
-    let visible = getVisibleCount(); // số thẻ hiển thị cùng lúc (3/2/1) nhưng bước chuyển = 1
-    let intervalId;
-    const DURATION = 3000; // 3 giây theo yêu cầu mới
+    // --- State ---
+    let currentIndex = 0;              // index của thẻ thực active
+    let visible = getVisibleCount();   // 3 / 2 / 1 tuỳ viewport
+    let intervalId = null;             // autoplay interval ref
+    let paused = false;                // trạng thái tạm dừng (hover/focus)
+    const AUTO_INTERVAL = 4000;        // 4s theo yêu cầu
+    const TRANSITION_MS = 700;         // ms animation slide
 
-    // Clone đầu cuối để seamless
+    // Danh sách đầy đủ (bao gồm clone) - sẽ rebuild khi responsive
+    let allItems = [];
+
+    function getVisibleCount(){
+        if(window.innerWidth <= 560) return 1;
+        if(window.innerWidth <= 900) return 2;
+        return 3;
+    }
+
     function setupClones(){
+        // Xoá clone cũ
+        Array.from(track.querySelectorAll('[data-clone="true"]')).forEach(c=>c.remove());
         const fragStart = document.createDocumentFragment();
         const fragEnd = document.createDocumentFragment();
         // clone cuối lên đầu
@@ -321,90 +333,108 @@ function initTutorRotator(){
         }
         track.insertBefore(fragStart, track.firstChild);
         track.appendChild(fragEnd);
+        allItems = Array.from(track.children);
     }
-
-    setupClones();
-
-    // Update collection (include clones for width calc)
-    const allItems = Array.from(track.children);
 
     function getCardWidth(){
         const firstReal = cards[0];
+        if(!firstReal) return 0;
         return firstReal.getBoundingClientRect().width + parseFloat(getComputedStyle(track).gap || 0);
     }
 
-    function getVisibleCount(){
-        if(window.innerWidth <= 560) return 1;
-        if(window.innerWidth <= 900) return 2;
-        return 3;
+    function applyActiveClasses(){
+        allItems.forEach(el=> el.classList.remove('is-active','is-near'));
+        const leadOffset = visible;
+        const active = allItems[leadOffset + currentIndex];
+        if(active) active.classList.add('is-active');
+        const prev = allItems[leadOffset + currentIndex - 1]; if(prev) prev.classList.add('is-near');
+        const next = allItems[leadOffset + currentIndex + 1]; if(next) next.classList.add('is-near');
+        updateButtonsDisabled();
     }
 
-        function applyActiveClasses(){
-            allItems.forEach(el=> el.classList.remove('is-active','is-near'));
-            const leadOffset = visible; // số clone ở đầu
-            const active = allItems[leadOffset + currentIndex];
-            if(active) active.classList.add('is-active');
-            const prev = allItems[leadOffset + currentIndex - 1];
-            if(prev) prev.classList.add('is-near');
-            const next = allItems[leadOffset + currentIndex + 1];
-            if(next) next.classList.add('is-near');
-        }
+    function moveTo(index, animate=true){
+        currentIndex = index;
+        const cardW = getCardWidth();
+        if(!animate){ track.style.transition='none'; } else { track.style.transition=`transform ${TRANSITION_MS}ms ease`; }
+        const translateX = -(cardW * (currentIndex + visible));
+        track.style.transform = `translateX(${translateX}px)`;
+        applyActiveClasses();
+    }
 
-        function moveTo(index, animate=true){
-            currentIndex = index;
-            const cardW = getCardWidth();
-            if(!animate){ track.style.transition='none'; } else { track.style.transition='transform 700ms ease'; }
-            // translate includes leading clone block
-            const translateX = -(cardW * (currentIndex + visible));
-            track.style.transform = `translateX(${translateX}px)`;
-            applyActiveClasses();
-        }
-
-    function next(){
-        const max = cards.length;
-        currentIndex += 1; // bước chuyển từng 1 thẻ
+    function next(step=1){
+        const max = cards.length; // số thẻ thực
+        currentIndex += step;
         moveTo(currentIndex,true);
         if(currentIndex >= max){
             currentIndex = 0;
-            setTimeout(()=> moveTo(currentIndex,false), 720);
+            // Jump về vị trí thực sau animation hoàn tất
+            setTimeout(()=> moveTo(currentIndex,false), TRANSITION_MS + 20);
+        }
+    }
+
+    function prev(step=1){
+        const max = cards.length;
+        currentIndex -= step;
+        moveTo(currentIndex,true);
+        if(currentIndex < 0){
+            currentIndex = max - 1;
+            setTimeout(()=> moveTo(currentIndex,false), TRANSITION_MS + 20);
         }
     }
 
     function startAuto(){
-        // Chỉ chạy auto nếu số thẻ thực > 3
-        const realCount = cards.length;
-        if(realCount <= 3) return; // không autoplay khi ít
-        intervalId = setInterval(next, DURATION);
+        stopAuto();
+        if(cards.length <= visible) return; // Không auto nếu không đủ thẻ
+        if(paused) return;
+        intervalId = setInterval(()=> next(1), AUTO_INTERVAL);
     }
-    function stopAuto(){ clearInterval(intervalId); }
+    function stopAuto(){ if(intervalId){ clearInterval(intervalId); intervalId=null; } }
 
-    // Pause khi hover để UX
-    rotator.addEventListener('mouseenter', stopAuto);
-    rotator.addEventListener('mouseleave', ()=>{ stopAuto(); startAuto(); });
+    function pause(){ paused = true; rotator.classList.add('tutor-rotator--paused'); stopAuto(); }
+    function resume(){ paused = false; rotator.classList.remove('tutor-rotator--paused'); startAuto(); }
 
-    // Responsive
+    function updateButtonsDisabled(){
+        // Với cơ chế clone vô hạn không cần disable; để lại hook nếu sau này muốn giới hạn.
+        if(prevBtn) prevBtn.disabled = false;
+        if(nextBtn) nextBtn.disabled = false;
+    }
+
+    // --- Interaction events ---
+    if(prevBtn){ prevBtn.addEventListener('click', ()=> { pause(); prev(1); resume(); }); }
+    if(nextBtn){ nextBtn.addEventListener('click', ()=> { pause(); next(1); resume(); }); }
+
+    // Keyboard support (focus trong rotator hoặc nút)
+    rotator.addEventListener('keydown', (e)=>{
+        if(e.key === 'ArrowRight'){ e.preventDefault(); pause(); next(1); resume(); }
+        if(e.key === 'ArrowLeft'){ e.preventDefault(); pause(); prev(1); resume(); }
+    });
+
+    // Hover / Focus pause
+    rotator.addEventListener('mouseenter', pause);
+    rotator.addEventListener('mouseleave', resume);
+    rotator.addEventListener('focusin', pause);
+    rotator.addEventListener('focusout', (e)=>{
+        // Nếu focus rời hoàn toàn khỏi rotator
+        if(!rotator.contains(document.activeElement)) resume();
+    });
+
+    // Responsive rebuild
     window.addEventListener('resize', debounce(()=>{
         const newVisible = getVisibleCount();
         if(newVisible !== visible){
-            stopAuto();
-            // Reset clones: remove all clones
-            Array.from(track.querySelectorAll('[data-clone="true"]')).forEach(c=>c.remove());
             visible = newVisible;
             currentIndex = 0;
             setupClones();
-            // refresh lists
             cards = Array.from(track.children).filter(el=>!el.hasAttribute('data-clone'));
-            const newAll = Array.from(track.children);
-            allItems.length = 0; newAll.forEach(n=>allItems.push(n));
-                // Start positioned after leading clones so real items visible
-                moveTo(0,false);
+            moveTo(0,false);
             startAuto();
         } else {
             moveTo(currentIndex,false);
         }
-    },300));
+    },250));
 
-    // Init position (offset by leading clones count = visible)
+    // --- Init ---
+    setupClones();
     moveTo(0,false);
     startAuto();
 }
