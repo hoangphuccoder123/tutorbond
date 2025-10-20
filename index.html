@@ -78,7 +78,7 @@
                                         <!-- Bộ lọc môn học -->
                                         <form class="tutor-filter tutor-section__filter" data-tutor-filter aria-label="Lọc gia sư" role="search">
                                             <div class="tutor-filter__group">
-                                                <span class="tutor-filter__icon" aria-hidden="true">🔍</span>
+                                                <span class="tutor-filter__icon" aria-hidden="true">�</span>
                                                 <label for="subjectSelect" class="tutor-filter__label">Môn:</label>
                                                 <select id="subjectSelect" name="subject" class="tutor-filter__select" data-filter-subject>
                                                     <option value="all" selected>Tất cả</option>
@@ -86,6 +86,18 @@
                                                     <option value="Vật lí">Vật lí</option>
                                                     <option value="Tiếng Anh">Tiếng Anh</option>
                                                     <option value="Toán học">Toán học</option>
+                                                </select>
+                                            </div>
+                                            <div class="tutor-filter__group">
+                                                <span class="tutor-filter__icon" aria-hidden="true">🎯</span>
+                                                <label for="examSelect" class="tutor-filter__label">Kỳ thi / Chứng chỉ:</label>
+                                                <select id="examSelect" name="exam" class="tutor-filter__select" data-filter-exam>
+                                                    <option value="all" selected>Tất cả</option>
+                                                    <option value="HSA">HSA</option>
+                                                    <option value="TSA">TSA</option>
+                                                    <option value="V-ACT">V-ACT</option>
+                                                    <option value="SAT">SAT</option>
+                                                    <option value="IELTS">IELTS</option>
                                                 </select>
                                             </div>
                                             <div class="tutor-filter__group tutor-filter__group--salary">
@@ -164,7 +176,7 @@
                                                 <p class="tb-price tutor-card__price">200 000 VND/giờ</p>
                                             </article>
                                             <!-- Card 4: Nguyễn Mạnh Hiển -->
-                                            <article class="tb-card tutor-card" aria-label="Gia sư Nguyễn Mạnh Hiển" data-subject="Tiếng Anh" data-salary="300" tabindex="0">
+                                            <article class="tb-card tutor-card" aria-label="Gia sư Nguyễn Mạnh Hiển" data-subject="Tiếng Anh" data-salary="300" data-exams="HSA,IELTS" tabindex="0">
                                                 <h3 class="tb-head">Tiếng Anh</h3>
                                                 <div class="tb-row">
                                                     <div class="tb-avatar tutor-card__avatar" aria-hidden="true">
@@ -185,7 +197,7 @@
                                                 <p class="tb-price tutor-card__price">300 000 VND/giờ</p>
                                             </article>
                                             <!-- Card 5: Nguyễn Xuân Hưng -->
-                                            <article class="tb-card tutor-card" aria-label="Gia sư Nguyễn Xuân Hưng" data-subject="Toán học" data-salary="400" tabindex="0">
+                                            <article class="tb-card tutor-card" aria-label="Gia sư Nguyễn Xuân Hưng" data-subject="Toán học" data-salary="400" data-exams="HSA" tabindex="0">
                                                 <h3 class="tb-head">Toán học</h3>
                                                 <div class="tb-row">
                                                     <div class="tb-avatar tutor-card__avatar" aria-hidden="true">
