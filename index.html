@@ -81,10 +81,34 @@
                                 <section class="tutors" aria-labelledby="tutors-heading">
                                     <div class="container">
                                         <h2 id="tutors-heading" class="section-title">Gia sư tiêu biểu</h2>
+                                        <!-- Bộ lọc môn học -->
+                                        <form class="tutor-filter" data-tutor-filter aria-label="Lọc môn học">
+                                            <div class="tutor-filter__group">
+                                                <span class="tutor-filter__icon" aria-hidden="true">🔍</span>
+                                                <label for="subjectSelect" class="tutor-filter__label">Môn:</label>
+                                                <select id="subjectSelect" name="subject" class="tutor-filter__select" data-filter-subject>
+                                                    <option value="all" selected>Tất cả</option>
+                                                    <option value="Hóa học">Hóa học</option>
+                                                    <option value="Vật lí">Vật lí</option>
+                                                    <option value="Tiếng Anh">Tiếng Anh</option>
+                                                    <option value="Toán học">Toán học</option>
+                                                </select>
+                                            </div>
+                                            <div class="tutor-filter__group tutor-filter__group--salary">
+                                                <label for="salarySelect" class="tutor-filter__label">Mức giá:</label>
+                                                <select id="salarySelect" name="salary" class="tutor-filter__select" data-filter-salary>
+                                                    <option value="all" selected>Tất cả</option>
+                                                    <option value="<=200">≤ 200k</option>
+                                                    <option value="200-300">200k – 300k</option>
+                                                    <option value=">300">> 300k</option>
+                                                </select>
+                                            </div>
+                                            <div class="tutor-filter__result" data-filter-result>5 gia sư</div>
+                                        </form>
                                         <div class="tutor-rotator" data-rotator>
                                           <div class="tutor-rotator__track" data-rotator-track>
                                             <!-- Card 1: Bùi Thị Phương Thảo -->
-                                            <article class="tb-card" aria-label="Gia sư Bùi Thị Phương Thảo">
+                                            <article class="tb-card" aria-label="Gia sư Bùi Thị Phương Thảo" data-subject="Hóa học" data-salary="200">
                                                 <h3 class="tb-head">Hóa học</h3>
                                                 <div class="tb-row">
                                                     <div class="tb-avatar" aria-hidden="true">
@@ -105,7 +129,7 @@
                                                 <p class="tb-price">200 000 VND/giờ</p>
                                             </article>
                                             <!-- Card 2: Phạm Thuý Lâm Hà -->
-                                            <article class="tb-card" aria-label="Gia sư Phạm Thuý Lâm Hà">
+                                            <article class="tb-card" aria-label="Gia sư Phạm Thuý Lâm Hà" data-subject="Vật lí" data-salary="200">
                                                 <h3 class="tb-head">Vật lí</h3>
                                                 <div class="tb-row">
                                                     <div class="tb-avatar" aria-hidden="true">
@@ -126,7 +150,7 @@
                                                 <p class="tb-price">200 000 VND/giờ</p>
                                             </article>
                                             <!-- Card 3: Lê Tiến Đạt -->
-                                            <article class="tb-card" aria-label="Gia sư Lê Tiến Đạt">
+                                            <article class="tb-card" aria-label="Gia sư Lê Tiến Đạt" data-subject="Vật lí" data-salary="200">
                                                 <h3 class="tb-head">Vật lý</h3>
                                                 <div class="tb-row">
                                                     <div class="tb-avatar" aria-hidden="true">
@@ -146,7 +170,7 @@
                                                 <p class="tb-price">200 000 VND/giờ</p>
                                             </article>
                                             <!-- Card 4: Nguyễn Mạnh Hiển -->
-                                            <article class="tb-card" aria-label="Gia sư Nguyễn Mạnh Hiển">
+                                            <article class="tb-card" aria-label="Gia sư Nguyễn Mạnh Hiển" data-subject="Tiếng Anh" data-salary="300">
                                                 <h3 class="tb-head">Tiếng Anh</h3>
                                                 <div class="tb-row">
                                                     <div class="tb-avatar" aria-hidden="true">
@@ -167,7 +191,7 @@
                                                 <p class="tb-price">300 000 VND/giờ</p>
                                             </article>
                                             <!-- Card 5: Nguyễn Xuân Hưng -->
-                                            <article class="tb-card" aria-label="Gia sư Nguyễn Xuân Hưng">
+                                            <article class="tb-card" aria-label="Gia sư Nguyễn Xuân Hưng" data-subject="Toán học" data-salary="400">
                                                 <h3 class="tb-head">Toán học</h3>
                                                 <div class="tb-row">
                                                     <div class="tb-avatar" aria-hidden="true">
