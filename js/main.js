@@ -7,6 +7,8 @@ Chỉ chứa smooth scroll cho navigation
 
 // Chờ DOM load hoàn tất
 document.addEventListener('DOMContentLoaded', function() {
+    // If we're on the standalone agent CV page, skip site-wide animations
+    const isAgentCvPage = window.location.pathname && window.location.pathname.toLowerCase().endsWith('agentcv.html');
     
     // Khởi tạo smooth scroll cho các anchor links
     initSmoothScroll();
@@ -17,8 +19,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Khởi tạo header scroll effect
     initHeaderScrollEffect();
     
-    // Khởi tạo scroll animations
-    initScrollAnimations();
+    // Khởi tạo scroll animations (skip on agentcv page)
+    if(!isAgentCvPage) initScrollAnimations();
     
     // Khởi tạo mobile menu
     initMobileMenu();
@@ -26,9 +28,30 @@ document.addEventListener('DOMContentLoaded', function() {
     // Khởi tạo logo fallback
     initLogoFallback();
 
-    // Khởi tạo rotator gia sư
-    initTutorRotator();
-    initTutorSubjectFilter();
+    // Khởi tạo rotator gia sư (skip animation-heavy features on agentcv page)
+    if(!isAgentCvPage){
+        initTutorRotator();
+        initTutorSubjectFilter();
+    }
+
+    // Initialize chat after DOM is ready so chat markup exists
+    try{ initTutorChat(); }catch(e){ /* fail silently */ }
+    
+    // If on agentcv page we still want chat available
+    if(isAgentCvPage){
+        // ensure subject filter was not initialized above
+        initTutorSubjectFilter();
+    } else {
+        // On agentcv page, ensure any rotator elements (if present) are static
+        try{
+            const rotator = document.querySelector('[data-rotator]');
+            if(rotator){
+                const track = rotator.querySelector('[data-rotator-track]');
+                if(track){ track.style.transition = 'none'; track.style.transform = 'none'; }
+                Array.from(rotator.querySelectorAll('.tb-card')).forEach(c=>{ c.style.transition = 'none'; c.style.transform = 'none'; });
+            }
+        }catch(e){ /* ignore errors */ }
+    }
 });
 
 /**
@@ -528,4 +551,155 @@ function initTutorSubjectFilter(){
     }
     // Khởi tạo ban đầu để đảm bảo count đúng khi load trang
     handleFilter();
+}
+
+// Tutor chat widget behavior (self-contained)
+function initTutorChat(){
+    const toggle = document.getElementById('tutor-chat-toggle');
+    const panel = document.getElementById('tutor-chat-panel');
+    const closeBtn = document.getElementById('tutor-chat-close');
+    const messages = document.getElementById('tutor-chat-messages');
+    const form = document.getElementById('tutor-chat-form');
+    const input = document.getElementById('tutor-chat-input');
+    const suggestButtons = document.querySelectorAll('.chat-suggestions .suggest');
+
+    if(!toggle || !panel || !messages || !form || !input) return;
+
+    function openPanel(){
+        panel.style.display = 'flex';
+        document.getElementById('tutor-chat').setAttribute('aria-hidden','false');
+        input.focus();
+        if(messages.children.length===0) {
+            botReply('Xin chào! Tôi có thể giúp bạn chọn gia sư. Bạn tìm gia sư môn gì và cho lứa tuổi nào?');
+        }
+    }
+
+    function closePanel(){
+        panel.style.display = 'none';
+        document.getElementById('tutor-chat').setAttribute('aria-hidden','true');
+        toggle.focus();
+    }
+
+    function addMessage(text, who='bot'){
+        const el = document.createElement('div');
+        el.className = 'msg ' + who;
+        el.textContent = text;
+        messages.appendChild(el);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    function botReply(text){
+        setTimeout(()=> addMessage(text,'bot'), 450);
+    }
+
+    toggle.addEventListener('click', ()=>{
+        if(panel.style.display === 'flex') closePanel(); else openPanel();
+    });
+    closeBtn && closeBtn.addEventListener('click', closePanel);
+
+    suggestButtons.forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+            const msg = btn.getAttribute('data-msg') || btn.textContent;
+            addMessage(msg,'user');
+            botReply(generateSuggestionReply(msg));
+        });
+    });
+
+    form.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const v = input.value && input.value.trim();
+        if(!v) return;
+        addMessage(v,'user');
+        input.value = '';
+        botReply(generateSuggestionReply(v));
+    });
+
+    // Extract tutor data from the featured cards on the page
+    function extractTutorsFromPage(){
+        const track = document.querySelector('[data-rotator-track]');
+        if(!track) return [];
+        const cards = Array.from(track.querySelectorAll('.tb-card')).filter(c=>!c.hasAttribute('data-clone'));
+        return cards.map(card=>{
+            const name = card.querySelector('.tb-name')?.textContent?.trim() || '';
+            const subject = card.getAttribute('data-subject') || card.querySelector('.tb-head')?.textContent?.trim() || '';
+            const salaryAttr = card.getAttribute('data-salary') || '';
+            const priceText = card.querySelector('.tb-price')?.textContent?.trim() || '';
+            const summary = card.querySelector('.tb-summary')?.textContent?.trim() || '';
+            const location = Array.from(card.querySelectorAll('.tb-meta-item')).find(it=>it.textContent.includes('📍'))?.textContent.replace('📍','').trim() || '';
+            const examsAttr = card.getAttribute('data-exams') || '';
+            const exams = examsAttr.split(',').map(s=>s.trim()).filter(Boolean);
+            return { name, subject, salaryAttr, priceText, summary, location, exams, el: card };
+        });
+    }
+
+    // Find matching tutors by simple keyword matching on subject/name/location
+    function findMatchingTutors(userText, limit=3){
+        const tutors = extractTutorsFromPage();
+        if(tutors.length === 0) return [];
+        const t = (userText||'').toLowerCase();
+        // Score tutors: +2 subject match, +1 name match, +1 location match, +1 exam match
+        const scores = tutors.map(tutor=>{
+            let score = 0;
+            if(tutor.subject && t.includes(tutor.subject.toLowerCase())) score += 2;
+            if(tutor.name && t.includes(tutor.name.toLowerCase())) score += 2;
+            if(tutor.location && t.includes(tutor.location.toLowerCase())) score += 1;
+            tutor.exams.forEach(ex=>{ if(ex && t.includes(ex.toLowerCase())) score += 1; });
+            // keyword heuristics
+            if(t.includes('toán') && tutor.subject.toLowerCase().includes('toán')) score += 2;
+            if(t.includes('tiếng anh') && tutor.subject.toLowerCase().includes('tiếng anh')) score += 2;
+            if(t.includes('vật lí') && tutor.subject.toLowerCase().includes('vật')) score += 2;
+            if(t.includes('hóa') && tutor.subject.toLowerCase().includes('hóa')) score += 2;
+            return { tutor, score };
+        });
+        scores.sort((a,b)=> b.score - a.score);
+        return scores.filter(s=>s.score>0).slice(0,limit).map(s=>s.tutor);
+    }
+
+    function generateSuggestionReply(userText){
+        const matches = findMatchingTutors(userText, 4);
+        if(matches.length === 0){
+            const t = (userText||'').toLowerCase();
+            if(t.includes('toán') || t.includes('math')) return 'Mình chưa tìm thấy gia sư Toán phù hợp ngay lập tức. Thử thêm thông tin: lớp, mục tiêu (ôn thi/ nâng cao).';
+            if(t.includes('tiếng anh') || t.includes('english')) return 'Mình chưa tìm thấy vì chưa đủ thông tin. Gợi ý: cho biết trình độ & mục tiêu (giao tiếp/IELTS).';
+            if(t.includes('lập trình') || t.includes('program')) return 'Hiện trang chỉ liệt kê gia sư phổ biến (Toán, Hóa, Lý, Anh). Nếu cần lập trình, cho biết ngôn ngữ và mục tiêu.';
+            return 'Cảm ơn — bạn cho biết thêm môn, lớp và mục tiêu (học nâng cao/ôn thi/giao tiếp) nhé, mình sẽ gợi ý.';
+        }
+        // Build a response string including small tutor summaries
+        let reply = 'Mình tìm thấy một vài gia sư phù hợp:\n';
+        matches.forEach(t=>{
+            reply += `- ${t.name} — ${t.subject} — ${t.priceText || t.salaryAttr} — ${t.location || ''}\n`;
+        });
+        reply += 'Bạn muốn xem chi tiết ai? (nhấn tên trong danh sách hoặc gõ tên)';
+        // After returning text, also display rich tutor cards in the chat UI
+        setTimeout(()=> showTutorCardsInChat(matches), 600);
+        return reply;
+    }
+
+    // Render small tutor cards into the chat messages area
+    function showTutorCardsInChat(tutors){
+        tutors.forEach(t=>{
+            const card = document.createElement('div');
+            card.className = 'chat-tutor-card';
+            card.tabIndex = 0;
+            card.innerHTML = `<div class="ct-left"><strong class="ct-name">${escapeHtml(t.name)}</strong><div class="ct-sub">${escapeHtml(t.subject)}</div><div class="ct-price">${escapeHtml(t.priceText || t.salaryAttr)}</div></div><div class="ct-action">Xem</div>`;
+            card.addEventListener('click', ()=>{
+                focusTutorCard(t.el);
+            });
+            card.addEventListener('keydown',(e)=>{ if(e.key==='Enter' || e.key===' ') { e.preventDefault(); focusTutorCard(t.el); } });
+            const wrapper = document.createElement('div'); wrapper.className = 'msg bot'; wrapper.appendChild(card);
+            messages.appendChild(wrapper);
+            messages.scrollTop = messages.scrollHeight;
+        });
+    }
+
+    function focusTutorCard(el){
+        if(!el) return;
+        // ensure the element is visible and give focus
+        el.style.outline = '3px solid #FFB84D';
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(()=> el.style.outline = '', 2500);
+    }
+
+    function escapeHtml(text){ return (text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
 }
