@@ -14,29 +14,14 @@
     <link rel="apple-touch-icon" href="photo/logo.jpg">
 </head>
 <body>
-    <!-- Header: điều hướng chính -->
+    <!-- Simplified Header: brand only (navbar removed) -->
     <header class="header site-header" role="banner">
-        <nav class="nav container site-nav" aria-label="Điều hướng chính">
-            <div class="nav-brand site-nav__brand">
-                <a href="#" class="brand-link site-nav__logo" aria-label="Trang chủ TutorBond">
-                    <img src="photo/logo.jpg" alt="TUTORBOND Logo" class="brand-logo site-nav__logo-img" loading="lazy">
-                    <span class="brand-text site-nav__logo-text">TUTORBOND</span>
-                </a>
-            </div>
-            <!-- Nút menu di động -->
-            <button class="mobile-menu-toggle site-nav__toggle" aria-label="Mở/đóng menu" aria-expanded="false" aria-controls="primary-menu">
-                <span class="hamburger-line"></span>
-                <span class="hamburger-line"></span>
-                <span class="hamburger-line"></span>
-            </button>
-            <ul id="primary-menu" class="nav-menu site-nav__list" role="menubar">
-                <li role="none"><a href="#tutors" class="nav-link site-nav__link" role="menuitem">Gia sư</a></li>
-                <li role="none"><a href="#agent-cv" class="nav-link site-nav__link" role="menuitem">Agent CV</a></li>
-                <li role="none"><a href="#features" class="nav-link site-nav__link" role="menuitem">Tính năng</a></li>
-                <li role="none"><a href="#how-it-works" class="nav-link site-nav__link" role="menuitem">Quy trình</a></li>
-                <li role="none"><a href="#nop-cv" class="nav-link site-nav__link" role="menuitem">Nộp CV</a></li>
-            </ul>
-        </nav>
+        <div class="nav container" aria-label="Header">
+            <a href="#" class="brand-link site-nav__logo" aria-label="Trang chủ TutorBond">
+                <img src="photo/logo.jpg" alt="TUTORBOND Logo" class="brand-logo site-nav__logo-img" loading="lazy">
+                <span class="brand-text site-nav__logo-text">TUTORBOND</span>
+            </a>
+        </div>
     </header>
 
     <main>
@@ -518,7 +503,7 @@
                     </div>
                 </div>
                 <div class="cta-buttons" style="margin-top:3rem; justify-content:center;">
-                    <a href="https://tutorbond-cv.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg" aria-label="Mở ứng dụng sàng lọc CV gia sư">Vào ứng dụng</a>
+                    <a href="https://turbondcv-1.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg" aria-label="Mở ứng dụng sàng lọc CV gia sư">Vào ứng dụng</a>
                 </div>
             </div>
         </section>
@@ -585,5 +570,26 @@
  
     <!-- JavaScript cho smooth scroll -->
     <script src="js/main.js"></script>
+
+    <!-- Chat widget for tutor selection advice -->
+    <div id="tutor-chat" aria-hidden="true">
+        <button id="tutor-chat-toggle" aria-label="Open chat">💬</button>
+        <aside id="tutor-chat-panel" role="dialog" aria-label="Tư vấn chọn gia sư">
+            <header class="chat-header">
+                <strong>Tư Vấn Chọn Gia Sư</strong>
+                <button id="tutor-chat-close" aria-label="Close chat">✕</button>
+            </header>
+            <div id="tutor-chat-messages" class="chat-messages" aria-live="polite"></div>
+            <div class="chat-suggestions">
+                <button class="suggest" data-msg="Tôi cần gia sư toán cho lớp 10">Gia sư Toán Lớp 10</button>
+                <button class="suggest" data-msg="Muốn luyện giao tiếp tiếng Anh cơ bản">Tiếng Anh Giao Tiếp</button>
+                <button class="suggest" data-msg="Tìm gia sư học kèm lập trình">Gia sư Lập Trình</button>
+            </div>
+            <form id="tutor-chat-form" class="chat-form">
+                <input id="tutor-chat-input" type="text" placeholder="Bạn muốn tìm gia sư như thế nào?" aria-label="Message" />
+                <button type="submit">Gửi</button>
+            </form>
+        </aside>
+    </div>
 </body>
 </html> 
