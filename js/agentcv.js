@@ -4,6 +4,7 @@ import { GoogleGenAI, Type } from "https://esm.sh/@google/genai@^1.11.0";
 let state = {
     cvData: null,
     cvImage: { file: null, preview: null },
+    docxFile: { file: null, text: null },
     analysisResult: null,
     isLoading: false,
     error: null,
@@ -21,6 +22,9 @@ const DOMElements = {
     imagePreviewWrapper: document.getElementById('image-preview-wrapper'),
     imagePreview: document.getElementById('image-preview'),
     removeImageButton: document.getElementById('remove-image-button'),
+    docxPreviewWrapper: document.getElementById('docx-preview-wrapper'),
+    docxFilename: document.getElementById('docx-filename'),
+    removeDocxButton: document.getElementById('remove-docx-button'),
     dropZone: document.getElementById('drop-zone'),
     fileInput: document.getElementById('file-input'),
     errorMessage: document.getElementById('error-message'),
@@ -33,6 +37,7 @@ const DOMElements = {
     analysisResultContainer: document.getElementById('analysis-result-container'),
     previewTab: document.getElementById('preview-tab'),
     analysisTab: document.getElementById('analysis-tab'),
+    downloadDocxButton: document.getElementById('download-docx-button'),
 };
 
 // --- GEMINI API SERVICE ---
@@ -64,7 +69,7 @@ function rotateAgentCVKey() {
 }
  
 // NOTE: Embedded API key for quick local run (insecure for production).
-const EMBEDDED_AGENTCV_KEY = 'AIzaSyAKPPpjX47fnBnJy2i9rsp0EIdw9PhDshs';
+const EMBEDDED_AGENTCV_KEY = 'AIzaSyCYB0Q-_9b0lune0CjEYSor124M4bcGVwY';
 
 let ai;
 let currentKey = EMBEDDED_AGENTCV_KEY || resolveAgentCVKey();
@@ -232,6 +237,75 @@ async function analyzeCVImage(imageBase64, mimeType) {
         }
         console.error("Lỗi khi gọi Gemini API:", lastErr);
         throw new Error("Không thể phân tích hình ảnh CV. Vui lòng thử lại hoặc kiểm tra cấu hình AI và hạn mức API.");
+}
+
+async function analyzeDocxText(docxText) {
+    const model = 'gemini-2.5-flash';
+    const systemInstruction = `Bạn là một chuyên gia tuyển dụng và trợ lý AI thông minh, nói tiếng Việt. Nhiệm vụ của bạn là:
+1. **Trích xuất thông tin** từ nội dung văn bản CV được cung cấp. Điền tất cả thông tin bạn tìm thấy vào đối tượng JSON 'extractedCv'. Nếu không tìm thấy thông tin cho một trường nào đó, hãy để nó là một chuỗi trống.
+2. **Phân tích CV** dựa trên thông tin vừa trích xuất. Cung cấp phân tích chi tiết, đề xuất cải thiện, và viết lại nội dung để làm cho CV chuyên nghiệp và hấp dẫn hơn. Điền kết quả phân tích vào đối tượng JSON 'analysis'.
+3. Khi viết lại kinh nghiệm, hãy sử dụng các động từ mạnh, định lượng hóa kết quả và nhấn mạnh thành tích thay vì chỉ mô tả công việc.
+4. Đối với các đề xuất cải thiện, hãy đưa ra những gợi ý chung có thể áp dụng cho nhiều ngành nghề.
+5. Luôn trả về một đối tượng JSON duy nhất, hợp lệ theo đúng schema đã định nghĩa.`;
+
+    const prompt = `Vui lòng trích xuất và phân tích CV từ nội dung văn bản sau.`;
+    const textPart = { text: `${prompt}\n\n${docxText}` };
+
+    try {
+        if (window.KeySwapManager && window.KeySwapManager.shouldRotateKey()) {
+            const nextKey = rotateAgentCVKey();
+            if (nextKey && nextKey !== currentKey) {
+                currentKey = nextKey;
+                ai = new GoogleGenAI({ apiKey: currentKey });
+                window.KeySwapManager.markSwitched();
+            }
+        }
+    } catch (_) {}
+
+    const maxAttempts = (typeof window !== 'undefined' && window.APIKeyLibrary && window.APIKeyLibrary.google?.gemini?.pool?.length)
+        ? window.APIKeyLibrary.google.gemini.pool.length + 1
+        : 2;
+    let lastErr;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+            const response = await ai.models.generateContent({
+                model,
+                contents: { parts: [textPart] },
+                config: {
+                    systemInstruction,
+                    responseMimeType: "application/json",
+                    responseSchema: fullAnalysisSchema,
+                    temperature: 0.3,
+                },
+            });
+            if (window.KeySwapManager) window.KeySwapManager.recordRequest({ tokensEstimated: 0 });
+
+            const jsonText = response.text.trim();
+            const result = JSON.parse(jsonText);
+            if (!result.extractedCv || !result.analysis) {
+                throw new Error("Phản hồi từ AI không có định dạng như mong đợi.");
+            }
+            return result;
+        } catch (error) {
+            lastErr = error;
+            const msg = String(error?.message || '').toLowerCase();
+            const status = error?.status || error?.response?.status || 0;
+            const quotaLike = msg.includes('quota') || msg.includes('exceed') || status === 429;
+            const authLike = msg.includes('api key') || msg.includes('unauthorized') || msg.includes('permission') || status === 401 || status === 403;
+            if ((quotaLike || authLike) && attempt < maxAttempts) {
+                const nextKey = rotateAgentCVKey();
+                if (nextKey && nextKey !== currentKey) {
+                    currentKey = nextKey;
+                    ai = new GoogleGenAI({ apiKey: currentKey });
+                    if (window.KeySwapManager) window.KeySwapManager.markSwitched();
+                    continue;
+                }
+            }
+            break;
+        }
+    }
+    console.error("Lỗi khi gọi Gemini API:", lastErr);
+    throw new Error("Không thể phân tích CV từ DOCX. Vui lòng thử lại hoặc kiểm tra cấu hình AI và hạn mức API.");
 }
 
 // --- RENDER FUNCTIONS ---
@@ -456,15 +530,16 @@ function updateUI() {
         DOMElements.errorMessage.classList.add('hidden');
     }
 
-    // Image preview
-    if (state.cvImage.preview) {
-        DOMElements.imagePreview.src = state.cvImage.preview;
-        DOMElements.imagePreviewWrapper.classList.remove('hidden');
+    // DOCX file preview
+    if (state.docxFile.file) {
+        if (DOMElements.docxFilename) DOMElements.docxFilename.textContent = state.docxFile.file.name || 'CV.docx';
+        if (DOMElements.docxPreviewWrapper) DOMElements.docxPreviewWrapper.classList.remove('hidden');
+        DOMElements.imagePreviewWrapper.classList.add('hidden');
         DOMElements.dropZone.classList.add('hidden');
     } else {
-        DOMElements.imagePreview.src = '';
-        DOMElements.imagePreviewWrapper.classList.add('hidden');
+        if (DOMElements.docxPreviewWrapper) DOMElements.docxPreviewWrapper.classList.add('hidden');
         DOMElements.dropZone.classList.remove('hidden');
+        DOMElements.imagePreviewWrapper.classList.add('hidden');
     }
 
     // View switching and loading indicators
@@ -476,6 +551,7 @@ function updateUI() {
         renderCVPreview();
         renderAnalysisResult();
         updateTabs();
+        if (DOMElements.downloadDocxButton) DOMElements.downloadDocxButton.disabled = false;
     } else {
         DOMElements.uploadView.classList.remove('hidden');
         DOMElements.mainView.classList.add('hidden');
@@ -490,6 +566,7 @@ function updateUI() {
             DOMElements.uploadLoading.classList.add('hidden');
             DOMElements.uploadLoading.classList.remove('flex');
         }
+        if (DOMElements.downloadDocxButton) DOMElements.downloadDocxButton.disabled = true;
     }
 }
 
@@ -514,35 +591,47 @@ function updateTabs() {
 }
 
 // --- EVENT HANDLERS ---
-function handleFileSelect(file) {
-    if (!file || !file.type.startsWith('image/')) {
-        state.error = 'Vui lòng chỉ tải lên tệp hình ảnh (JPEG, PNG, v.v.).';
+function handleFileSelectDocx(file) {
+    if (!file || !(file.name?.toLowerCase().endsWith('.docx') || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')) {
+        state.error = 'Vui lòng chỉ tải lên tệp DOCX.';
         updateUI();
         return;
     }
     const reader = new FileReader();
-    reader.onloadend = () => {
-        state.cvImage.file = file;
-        state.cvImage.preview = reader.result;
-        state.error = null;
-        handleAnalyze(); // Automatically start analysis
+    reader.onload = async () => {
+        try {
+            const arrayBuffer = reader.result;
+            if (!window.mammoth || !window.mammoth.extractRawText) {
+                state.error = 'Thiếu thư viện đọc DOCX. Vui lòng kiểm tra kết nối mạng.';
+                updateUI();
+                return;
+            }
+            const { value } = await window.mammoth.extractRawText({ arrayBuffer });
+            state.docxFile.file = file;
+            state.docxFile.text = value || '';
+            state.error = null;
+            handleAnalyzeDocx();
+        } catch (e) {
+            console.error('DOCX parse error:', e);
+            state.error = 'Không thể đọc nội dung DOCX. Vui lòng thử lại.';
+            updateUI();
+        }
     };
-    reader.readAsDataURL(file);
+    reader.readAsArrayBuffer(file);
 }
 
-async function handleAnalyze() {
+async function handleAnalyzeDocx() {
     if (!ai) {
          state.error = "Trợ lý AI chưa được định cấu hình đúng cách. Vui lòng kiểm tra bảng điều khiển để biết chi tiết.";
          state.isLoading = false;
-         // Reset image on config error to allow retry
-         state.cvImage = { file: null, preview: null };
+         // Reset DOCX on config error to allow retry
+         state.docxFile = { file: null, text: null };
          updateUI();
          return;
     }
-    if (!state.cvImage.file) {
-        // This might happen if re-analyze is clicked after an error that cleared the image
-        state.error = 'Vui lòng tải lại ảnh CV của bạn.';
-        state.cvData = null; // Go back to upload view
+    if (!state.docxFile.file || !state.docxFile.text) {
+        state.error = 'Vui lòng tải lại file DOCX CV của bạn.';
+        state.cvData = null;
         updateUI();
         return;
     }
@@ -558,8 +647,7 @@ async function handleAnalyze() {
     }
 
     try {
-        const base64String = state.cvImage.preview.split(',')[1];
-        const result = await analyzeCVImage(base64String, state.cvImage.file.type);
+        const result = await analyzeDocxText(state.docxFile.text);
         state.analysisResult = result.analysis;
         state.cvData = result.extractedCv;
         if (!state.cvData.experience) state.cvData.experience = [];
@@ -569,7 +657,7 @@ async function handleAnalyze() {
     } catch (e) {
         state.error = e.message;
         if (!state.cvData) {
-            state.cvImage = { file: null, preview: null };
+            state.docxFile = { file: null, text: null };
         }
     } finally {
         state.isLoading = false;
@@ -622,17 +710,26 @@ function handleRemoveImage() {
     updateUI();
 }
 
+function handleRemoveDocx() {
+    state.docxFile = { file: null, text: null };
+    DOMElements.fileInput.value = '';
+    updateUI();
+}
+
 // --- INITIALIZATION ---
 function init() {
     // Initial render
     updateUI();
 
     // Event Listeners
-    DOMElements.reanalyzeButton.addEventListener('click', handleAnalyze);
+    DOMElements.reanalyzeButton.addEventListener('click', handleAnalyzeDocx);
 
     DOMElements.dropZone.addEventListener('click', () => DOMElements.fileInput.click());
-    DOMElements.fileInput.addEventListener('change', e => handleFileSelect(e.target.files[0]));
+    DOMElements.fileInput.addEventListener('change', e => handleFileSelectDocx(e.target.files[0]));
     DOMElements.removeImageButton.addEventListener('click', handleRemoveImage);
+    if (DOMElements.removeDocxButton) {
+        DOMElements.removeDocxButton.addEventListener('click', handleRemoveDocx);
+    }
 
     // Drag and Drop
     const dropZone = DOMElements.dropZone;
@@ -643,7 +740,7 @@ function init() {
         e.preventDefault();
         e.stopPropagation();
         dropZone.classList.remove('border-blue-500', 'bg-blue-50');
-        handleFileSelect(e.dataTransfer.files[0]);
+        handleFileSelectDocx(e.dataTransfer.files[0]);
     });
 
     // Tabs
@@ -671,3 +768,94 @@ function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+// --- DOCX EXPORT ---
+function generateDocxHtml(cv) {
+    const safe = (v) => (v || '').toString();
+    const expBlocks = (cv.experience || []).map(exp => {
+        const points = safe(exp.description).split(/[\.\n]/).filter(d => d.trim());
+        return `
+        <div style="margin-bottom:12px;">
+            <div style="font-weight:700;">${safe(exp.title)} — ${safe(exp.company)}</div>
+            ${points.length ? `<ul style="margin:6px 0 0 18px;">${points.map(p => `<li>${p.trim()}</li>`).join('')}</ul>` : ''}
+        </div>`;
+    }).join('');
+
+    const skills = safe(cv.skills).split(',').map(s => s.trim()).filter(Boolean);
+
+    return `<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8"/>
+        <title>CV</title>
+        <style>
+            body{font-family:Arial,Helvetica,sans-serif; font-size:12pt; color:#000;}
+            h1{font-size:24pt; margin:0 0 6pt 0;}
+            h2{font-size:14pt; margin:16pt 0 6pt 0;}
+            p{margin:6pt 0;}
+            .contact{font-size:10pt; color:#333;}
+            .section{margin-top:10pt;}
+        </style>
+    </head>
+    <body>
+        <h1>${safe(cv.fullName) || 'Họ và Tên'}</h1>
+        <p class="contact">${safe(cv.email)}${cv.email && cv.phone ? ' • ' : ''}${safe(cv.phone)}${(cv.email||cv.phone) && cv.linkedin ? ' • ' : ''}${safe(cv.linkedin)}</p>
+        <div class="section">
+            <h2>Tóm tắt bản thân</h2>
+            <p>${safe(cv.summary)}</p>
+        </div>
+        <div class="section">
+            <h2>Kinh nghiệm làm việc</h2>
+            ${expBlocks}
+        </div>
+        <div class="section">
+            <h2>Học vấn</h2>
+            <p>${safe(cv.education)}</p>
+        </div>
+        <div class="section">
+            <h2>Kỹ năng</h2>
+            ${skills.length ? `<ul style="margin:6px 0 0 18px;">${skills.map(s => `<li>${s}</li>`).join('')}</ul>` : '<p></p>'}
+        </div>
+    </body>
+    </html>`;
+}
+
+function handleDownloadDocx() {
+    try {
+        if (!state.cvData) {
+            state.error = 'Chưa có nội dung CV để xuất ra DOCX.';
+            updateUI();
+            return;
+        }
+        if (!window.htmlDocx || !window.htmlDocx.asBlob) {
+            state.error = 'Thiếu thư viện chuyển đổi DOCX. Vui lòng kiểm tra kết nối mạng.';
+            updateUI();
+            return;
+        }
+        const html = generateDocxHtml(state.cvData);
+        const blob = window.htmlDocx.asBlob(html);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const namePart = (state.cvData.fullName || 'CV').replace(/[^a-zA-Z0-9_\- ]/g, '').trim() || 'CV';
+        a.href = url;
+        a.download = `${namePart}.docx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+    } catch (e) {
+        console.error('DOCX export error:', e);
+        state.error = 'Xuất DOCX thất bại. Vui lòng thử lại.';
+        updateUI();
+    }
+}
+
+// Attach after init is defined
+const _origInit = init;
+init = function() {
+    _origInit();
+    if (DOMElements.downloadDocxButton) {
+        DOMElements.downloadDocxButton.addEventListener('click', handleDownloadDocx);
+        DOMElements.downloadDocxButton.disabled = !state.cvData;
+    }
+};
